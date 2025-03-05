@@ -98,10 +98,8 @@ You can manually trigger any of the background processes using Docker exec comma
 ### Access the Scheduler Container
 
 ```bash
-docker exec -it <scheduler-container-name> bash
+docker exec -it <scheduler-container-name> /bin/sh
 ```
-
-Replace `<scheduler-container-name>` with the actual container name or ID. You can find this by running `docker ps`.
 
 ### Run Individual Scripts
 
