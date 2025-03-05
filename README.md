@@ -1,7 +1,3 @@
-# Food Classification System
-
-This system provides an end-to-end solution for food image classification with continuous improvement through human feedback. The system automatically classifies uploaded food images into 11 categories and gets better over time by incorporating user feedback and expert annotations.
-
 ## System Overview
 
 After running `docker-compose up`, you'll have access to the following components:
