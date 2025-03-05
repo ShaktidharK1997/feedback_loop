@@ -73,6 +73,13 @@ remote.run("docker-compose --version")
 ```
 :::
 
+::: {.cell .markdown}
+
+!NOTE : Once Docker-compose is set up, please take the env file that has been shared with you and copy it into the gourmetgram repository. This is important for the application to work correctly. 
+
+:::
+
+
 ::: {.cell .code}
 ```python
 # Use docker to setup the minio object store and the label studio
