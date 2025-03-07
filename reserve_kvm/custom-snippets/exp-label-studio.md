@@ -99,7 +99,7 @@ remote.run("sleep 15")
 ::: {.cell .code}
 ```python
 # Use docker to setup the Flask Application
-remote.run("cd gourmetgram; docker-compose up -d flask-app")
+remote.run("cd gourmetgram; docker-compose up flask-app")
 ```
 :::
 
