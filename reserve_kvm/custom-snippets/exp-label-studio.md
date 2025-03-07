@@ -52,10 +52,16 @@ remote.run("python3 -m pip config set global.break-system-packages true")
 ```
 :::
 
+
+
 ::: {.cell .code}
 ```python
-# Clone the gourmetgram repository
+# Clone the gourmetgram repository with feedback_loop_integration branch if using labelling setup
 remote.run("git clone -b feedback_loop_integration https://github.com/ShaktidharK1997/gourmetgram.git")
+
+# Clone the gourmetgram repository with user_proxy_signal branch if using user signal setup
+# remote.run("git clone -b user_proxy_signal https://github.com/ShaktidharK1997/gourmetgram.git")
+
 ```
 :::
 
@@ -101,5 +107,18 @@ remote.run("cd gourmetgram; docker-compose up -d flask-app")
 ```python
 # Use docker to setup the scheduler
 remote.run("cd gourmetgram; docker-compose up -d scheduler")
+```
+:::
+
+::: {.cell .markdown}
+
+If you want to run gourmetgram application using a user proxy signal instead of a labelling setup, proceed with the next steps instead 
+
+:::
+
+::: {.cell .code}
+```python
+# Use docker to setup 
+remote.run("cd gourmetgram; docker-compose up --build")
 ```
 :::
