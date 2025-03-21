@@ -171,6 +171,10 @@ for i, n in enumerate(node_conf):
     remote.run(f"sudo firewall-cmd --zone=trusted --add-source=172.16.0.0/12 --permanent")
     remote.run(f"sudo firewall-cmd --zone=trusted --add-source=10.0.0.0/8 --permanent")
     remote.run(f"sudo firewall-cmd --zone=trusted --add-source=127.0.0.0/8 --permanent")
+    # add container ports
+    remote.run(f"sudo firewall-cmd --zone=public --add-port=8080/tcp --permanent")
+    remote.run(f"sudo firewall-cmd --zone=public --add-port=8000/tcp --permanent")
+    remote.run(f"sudo firewall-cmd --zone=public --add-port=9001/tcp--permanent")
     time.sleep(3)
 ```
 :::
@@ -215,13 +219,39 @@ for port in chi.network.list_ports():
 
 ::: {.cell .code}
 ```python
-# we also need to enable incoming traffic on the HTTP port
-if not os_conn.get_security_group("Allow HTTP 8088"):
-    os_conn.create_security_group("Allow HTTP 8088", "Enable HTTP traffic on TCP port 8088")
-    os_conn.create_security_group_rule("Allow HTTP 8088", port_range_min=8088, port_range_max=8088, protocol='tcp', remote_ip_prefix='0.0.0.0/0')
+# we also need to enable incoming traffic on the HTTP port 8080
+if not os_conn.get_security_group("Allow HTTP 8080"):
+    os_conn.create_security_group("Allow HTTP 8080", "Enable HTTP traffic on TCP port 8080")
+    os_conn.create_security_group_rule("Allow HTTP 8080", port_range_min=8080, port_range_max=8080, protocol='tcp', remote_ip_prefix='0.0.0.0/0')
 
 # add existing security group
-security_group_id = os_conn.get_security_group("Allow HTTP 8088").id
+security_group_id = os_conn.get_security_group("Allow HTTP 8080").id
+for port in chi.network.list_ports(): 
+    if port['port_security_enabled'] and port['network_id']==public_net.get("id"):
+        pri_security_groups = port['security_groups']
+        pri_security_groups.append(security_group_id)
+        os_conn.network.update_port(port['id'], security_groups=pri_security_groups)
+
+# we also need to enable incoming traffic on the HTTP port 8000
+if not os_conn.get_security_group("Allow HTTP 8000"):
+    os_conn.create_security_group("Allow HTTP 8000", "Enable HTTP traffic on TCP port 8000")
+    os_conn.create_security_group_rule("Allow HTTP 8000", port_range_min=8000, port_range_max=8000, protocol='tcp', remote_ip_prefix='0.0.0.0/0')
+
+# add existing security group
+security_group_id = os_conn.get_security_group("Allow HTTP 8000").id
+for port in chi.network.list_ports(): 
+    if port['port_security_enabled'] and port['network_id']==public_net.get("id"):
+        pri_security_groups = port['security_groups']
+        pri_security_groups.append(security_group_id)
+        os_conn.network.update_port(port['id'], security_groups=pri_security_groups)
+
+# we also need to enable incoming traffic on the HTTP port 9001
+if not os_conn.get_security_group("Allow HTTP 9001"):
+    os_conn.create_security_group("Allow HTTP 9001", "Enable HTTP traffic on TCP port 9001")
+    os_conn.create_security_group_rule("Allow HTTP 9001", port_range_min=9001, port_range_max=9001, protocol='tcp', remote_ip_prefix='0.0.0.0/0')
+
+# add existing security group
+security_group_id = os_conn.get_security_group("Allow HTTP 9001").id
 for port in chi.network.list_ports(): 
     if port['port_security_enabled'] and port['network_id']==public_net.get("id"):
         pri_security_groups = port['security_groups']
