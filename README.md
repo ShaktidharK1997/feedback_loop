@@ -72,7 +72,7 @@ As discussed in the notebook, this direct user feedback approach has limitations
 - Without expert validation, feedback quality can be inconsistent
 - The system lacks a structured way to prioritize which corrections should influence model retraining
 
-These limitations are addressed in the improved Human in the Loop approach implemented in the `feedback_loop_integration` branch.
+These limitations are addressed in the improved Data Annotator approach implemented in the `feedback_loop_integration` branch.
 
 ## Data Annotator Approach
 
