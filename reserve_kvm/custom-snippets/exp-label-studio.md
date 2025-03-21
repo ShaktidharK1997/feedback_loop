@@ -68,7 +68,8 @@ remote.run("docker-compose --version")
 :::
 
 ::: {.cell .markdown}
-## User Feedback Loop
+## Human in the Loop Approach
+### User Feedback Loop
 We have talked about feedback loops. Let's start by exploring a basic feedback mechanism where users directly provide feedback on food classifications.
 
 :::
@@ -97,7 +98,7 @@ remote.run("cd gourmetgram; docker-compose up -d --build")
 :::
 
 ::: {.cell .markdown}
-### Explore User Feedback System
+#### User Feedback System
 1. Access the Web Interface:
     - Open your browser and navigate to: http://localhost:8000
     - You'll see the Gourmet Gram interface for uploading and classifying food images
@@ -130,7 +131,7 @@ remote.run("cd gourmetgram; docker-compose down -v")
 
 
 ::: {.cell .markdown}
-### Disadvantages of User Feedback
+#### Disadvantages of User Feedback
 
 However, this approach of taking the user's feedback is not optimal for many reasons:
 
@@ -143,13 +144,13 @@ However, this approach of taking the user's feedback is not optimal for many rea
 :::
 
 ::: {.cell .markdown}
-## Human in the Loop Approach
-For this reason, companies use a Human in the Loop approach to improve their model performance. In this case, predictions which either have a low confidence or user disagrees with are sent to data annotators. These annotators have significant experience in the domain of the model and therefore can provide reliable labels for the tasks at hand. These high-quality labels are then used to retrain the model, leading to better performance.
+### Data Annotators Approach
+For this reason, companies use data dnnotators to improve their model performance. In this case, predictions which either have a low confidence or user disagrees with are sent to data annotators. These annotators have significant experience in the domain of the model and therefore can provide reliable labels for the tasks at hand. These high-quality labels are then used to retrain the model, leading to better performance.
 :::
 
 ::: {.cell .markdown}
-### Setting up Human in the Loop System
-Lets try and setting up a Human in the Loop approach for Gourmetgram! For this, we are using `Label Studio` which is an open source data labeling platform. 
+### Setting up Data Annotator System
+Lets try and setting up a Data Annotator approach for Gourmetgram! For this, we are using `Label Studio` which is an open source data labeling platform. 
 
 https://labelstud.io/
 :::
@@ -180,7 +181,7 @@ remote.run("cd gourmetgram; docker-compose up flask-app --build")
 :::
 
 ::: {.cell .markdown}
-### Explore Human in the Loop System
+### Label Studio System
 1. Access the Web Interface:
     - Open your browser and navigate to: http://localhost:8000
     - Upload food images for classification
