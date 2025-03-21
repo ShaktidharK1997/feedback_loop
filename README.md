@@ -1,7 +1,5 @@
 # Gourmet Gram: Food Classification Systems
 
-Based on the provided code files and requirements, here's the updated documentation that explains both implementations:
-
 ## User Feedback Approach
 
 ### System Overview
