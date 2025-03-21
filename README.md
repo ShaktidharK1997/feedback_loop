@@ -74,7 +74,7 @@ As discussed in the notebook, this direct user feedback approach has limitations
 
 These limitations are addressed in the improved Human in the Loop approach implemented in the `feedback_loop_integration` branch.
 
-## Human in the Loop Approach
+## Data Annotator Approach
 
 ### System Overview
 
@@ -145,9 +145,9 @@ Key buckets:
 - `target-bucket`: Where Label Studio exports annotations
 - `test-suites`: Contains organized collections of images for model evaluation and testing
 
-### Human in the Loop Feedback Workflow
+### Data Annotator Workflow
 
-The system implements a sophisticated feedback loop:
+The system implements the following feedback loop:
 
 1. Users upload images for classification
 2. The model makes predictions
