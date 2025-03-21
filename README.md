@@ -1,22 +1,25 @@
-## System Overview
+# Gourmet Gram: Food Classification Systems
 
-After running `docker-compose up`, you'll have access to the following components:
+## User Feedback Approach
+
+### System Overview
+
+After running `docker-compose up` for the `user_corrected` branch, you'll have access to the following components:
 
 | Component | URL | Description |
 |-----------|-----|-------------|
 | Food Classification Web App | http://localhost:8000 | Upload images and get classifications |
-| Label Studio | http://localhost:8080 | Review and correct classifications |
-| MinIO Console | http://localhost:9001 | View stored images and tracking data |
+| MinIO Console | http://localhost:9001 | View stored images and feedback data |
 
-## Getting Started
+### Getting Started
 
 1. Start the system: Follow instructions in `reserve_kvm\reserve_chameleon.ipynb`
-2. Wait for all services to initialize (usually takes about 30-60 seconds)
+2. Wait for all services to initialize (usually takes about 20-30 seconds)
 3. Access the web app at http://localhost:8000 to begin classifying food images
 
-## Components
+### Components
 
-### 1. Food Classification Web App (Flask)
+#### 1. Food Classification Web App (Flask)
 
 **URL**: http://localhost:8000
 
@@ -24,16 +27,97 @@ When you upload an image, the system will:
 1. Classify it into one of 11 food categories using a pre-trained PyTorch model
 2. Display the predicted class
 3. Allow you to confirm or reject the classification
-4. Store the image in MinIO in a class-specific directory
+4. If confirmed, store the image in MinIO in the predicted class directory
+5. If rejected, allow you to select the correct class and move the image to that class directory
 
-### 2. Label Studio
+#### 2. MinIO Storage
+
+**URL**: http://localhost:9001
+
+MinIO organizes:
+- Food images (in class-specific directories class_00 through class_10)
+- Tracking data (production predictions and user corrections)
+
+Key buckets:
+- `production-images`: Contains classified images in class directories
+- `tracking`: Contains JSON files tracking system operations
+  - `production_data.json`: Records all predicted images and model information
+  - `user_corrected_labels.json`: Records user corrections to model predictions
+- `test-suites`: Contains organized collections of corrected images for evaluation
+
+#### 3. Test Suite Generator
+
+The system can generate test suites based on user corrections:
+- Creates test suites for user-corrected images
+- Organizes images into timestamped directories for historical tracking
+- Can be triggered through the web interface
+
+### Direct User Feedback Loop
+
+This implementation uses direct user feedback as follows:
+
+1. Users upload images for classification
+2. The model makes predictions
+3. Users confirm correct predictions or provide corrections for incorrect ones
+4. Images are stored in their correct class directories (either as predicted or as corrected)
+5. A test suite can be generated from corrected images for model evaluation
+
+The `/generate_test_suite` endpoint can be accessed to create test collections of corrected images for offline model evaluation.
+
+### Limitations of Direct User Feedback
+
+As discussed in the notebook, this direct user feedback approach has limitations:
+- Users may misclassify images if they're uncertain about food categories
+- UI design elements (like the order of options in the correction dropdown) can introduce selection biases
+- Without expert validation, feedback quality can be inconsistent
+- The system lacks a structured way to prioritize which corrections should influence model retraining
+
+These limitations are addressed in the improved Human in the Loop approach implemented in the `feedback_loop_integration` branch.
+
+## Human in the Loop Approach
+
+### System Overview
+
+After running `docker-compose up` for the `feedback_loop_integration` branch, you'll have access to the following components:
+
+| Component | URL | Description |
+|-----------|-----|-------------|
+| Food Classification Web App | http://localhost:8000 | Upload images and get classifications |
+| Label Studio | http://localhost:8080 | Review and correct classifications |
+| MinIO Console | http://localhost:9001 | View stored images and tracking data |
+
+### Getting Started
+
+1. Start the system: Follow instructions in `reserve_kvm\reserve_chameleon.ipynb`
+2. Wait for all services to initialize (usually takes about 30-60 seconds)
+3. Access the web app at http://localhost:8000 to begin classifying food images
+
+### Components
+
+#### 1. Food Classification Web App (Flask)
+
+**URL**: http://localhost:8000
+
+When you upload an image, the system will:
+1. Classify it into one of 11 food categories using a pre-trained PyTorch model
+2. Display the predicted class
+3. Allow you to provide feedback (thumbs up/down) on the classification
+4. Automatically send low-confidence predictions to Label Studio for expert review
+5. Send images with negative user feedback to Label Studio for expert review
+
+The web app also provides endpoints for:
+- Processing Label Studio annotations (`/process_labels`)
+- Generating test suites (`/generate_test_suite`)
+- Random sampling of images for quality control (`/sample_random_images`)
+
+#### 2. Label Studio
 
 **URL**: http://localhost:8080
 
 Label Studio is where:
 - Incorrectly classified or low-confidence images are sent for review
-- Human annotators can select the correct food category
-- Annotations are automatically exported to improve the system
+- Human annotators (domain experts) can select the correct food category
+- Annotations are automatically exported for system improvement
 
 After logging in:
 1. Navigate to the "Food Classification Review" project
@@ -41,7 +125,7 @@ After logging in:
 3. For each task, select the correct food category from the available options
 4. Submit your annotation
 
-### 3. MinIO Storage
+#### 3. MinIO Storage
 
 **URL**: http://localhost:9001
 
@@ -61,67 +145,34 @@ Key buckets:
 - `target-bucket`: Where Label Studio exports annotations
 - `test-suites`: Contains organized collections of images for model evaluation and testing
 
-### 4. Background Scheduler
+### Human in the Loop Feedback Workflow
 
-This component runs in the background to:
-- Process completed Label Studio annotations
-- Move images to correct class directories based on completed tasks 
-- Update tracking files
-- Create tasks for random sampling in Label Studio
-- Generate test suites daily for quality assurance
-
-### 5. Test Suite Generator
-
-The Test Suite Generator creates organized collections of images based on their feedback history:
-- Creates test suites for user feedback, low confidence, and random sampling images
-- Organizes images into timestamped directories for historical tracking
-- Runs automatically once per day
-- Can be triggered manually for on-demand test suite creation
-
-## Feedback Loop
-
-The system implements a continuous improvement cycle:
+The system implements a sophisticated feedback loop:
 
 1. Users upload images for classification
 2. The model makes predictions
-3. Users provide feedback on the accuracy
-4. Incorrect or low-confidence predictions are sent to Label Studio
-5. Annotators review and correct classifications
-6. The background processor applies these corrections
-7. Future predictions benefit from this additional knowledge
-8. Test suites capture the system's performance over time
+3. Images are filtered into three streams:
+   - Low confidence predictions are automatically sent to Label Studio
+   - Images with negative user feedback are sent to Label Studio
+   - Random samples are periodically sent to Label Studio for quality control
+4. Expert annotators review and correct classifications in Label Studio
+5. The `/process_labels` endpoint processes these annotations and moves images to the correct class directories
+6. Test suites can be generated for model evaluation based on different feedback sources
 
-## On-Demand Script Execution
+### Running On-Demand Processes
 
-You can manually trigger any of the background processes using Docker exec commands:
-
-### Access the Scheduler Container
-
-```bash
-docker exec -it <scheduler-container-name> /bin/sh
-```
-
-### Run Individual Scripts
-
-Once inside the container, you can execute any of these scripts:
+You can manually trigger any of the processes using the Flask endpoints:
 
 ```bash
 # Process Label Studio annotations
-/usr/local/bin/python /app/process_labels.py
+curl -X POST http://localhost:8000/process_labels
 
 # Create random sampling tasks in Label Studio
-/usr/local/bin/python /app/random_sampler.py
+curl -X POST http://localhost:8000/sample_random_images -H "Content-Type: application/json" -d '{"sample_count": 5}'
 
-# Generate test suites (with task type parameter)
-/usr/local/bin/python /app/test_suite_generator.py user_feedback
-/usr/local/bin/python /app/test_suite_generator.py low_confidence
-/usr/local/bin/python /app/test_suite_generator.py random_sampling
-/usr/local/bin/python /app/test_suite_generator.py all
+# Generate test suites
+curl -X GET http://localhost:8000/generate_test_suite?task_type=user_feedback
+curl -X GET http://localhost:8000/generate_test_suite?task_type=low_confidence
+curl -X GET http://localhost:8000/generate_test_suite?task_type=random_sampling
+curl -X GET http://localhost:8000/generate_test_suite?task_type=all
 ```
-
-Each test suite contains:
-- Original images
-- A metadata.json file with creation timestamp and source information
-- Organization by feedback source (user feedback, low confidence, random sampling)
-
-Access test suites through the MinIO Console at http://localhost:9001, navigating to the `test-suites` bucket.
