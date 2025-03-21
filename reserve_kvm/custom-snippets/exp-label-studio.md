@@ -69,7 +69,7 @@ remote.run("docker-compose --version")
 
 ::: {.cell .markdown}
 
-We have talked about feedback loops. Lets try and setup a very basic one where the user gives feedback on the correct food class of the image. 
+We have talked about feedback loops. Let's start by exploring a basic feedback mechanism where users directly provide feedback on food classifications.
 
 :::
 
@@ -98,8 +98,34 @@ remote.run("cd gourmetgram; docker-compose up -d --build")
 
 ::: {.cell .markdown}
 
-Please look at the README file to understand more about it
+1. Access the Web Interface:
 
+Open your browser and navigate to: http://localhost:8000
+You'll see the Gourmet Gram interface for uploading and classifying food images
+
+
+2. Test the Classification System:
+
+Upload a food image using the interface
+The system will display its prediction
+You can either confirm the prediction is correct or select the correct class if it's wrong
+
+
+3. Explore the MinIO Storage:
+
+Navigate to http://localhost:9001
+Login with the credentials username: minioadmin, password: minioadmin
+Explore the `production-images` bucket to see how images are organized by class
+Check the `tracking bucket` to view the JSON files that track user corrections
+
+4. Generate a Test Suite:
+
+You can generate a test suite based on user corrections by running:
+```bash
+curl -X GET "http://localhost:8000/generate_test_suite"
+```
+
+This will create a timestamped directory in the test-suites bucket containing corrected images
 :::
 
 ::: {.cell .code}
@@ -159,6 +185,47 @@ remote.run("cd gourmetgram; docker-compose up flask-app --build")
 
 ::: {.cell .markdown}
 
-Please look at the README file to understand more about it
+1. Access the Web Interface:
 
+Open your browser and navigate to: http://localhost:8000
+Upload food images for classification
+
+2. Provide Feedback:
+
+After seeing a prediction, you can give thumbs up (correct) or thumbs down (incorrect)
+Notice that unlike the first system, you don't directly provide the correct class
+Images with low confidence or negative feedback are sent to Label Studio for expert review
+
+
+3. Explore Label Studio (Annotation Interface):
+
+Navigate to http://localhost:8080
+Login with username: gourmetgramuser@gmail.com, password: gourmetgrampassword)
+Select the "Food Classification Review" project
+Click on "Tasks" to see images waiting for expert review
+For each task, select the correct food category and submit your annotation
+
+4. Create random sampling tasks 
+
+```bash
+curl -X POST "http://localhost:8000/sample_random_images" -H "Content-Type: application/json" -d '{"sample_count": 5}'
+```
+
+5. Process Expert Annotations:
+
+After annotating some images in Label Studio, process these annotations:
+```bash
+curl -X POST "http://localhost:8000/process_labels"
+```
+This will move images to their correct class directories based on expert annotations
+
+6. Explore MinIO Storage:
+
+Navigate to http://localhost:9001
+Examine the different buckets to see how data is organized:
+
+production-images: Contains all classified images
+tracking: Contains tracking JSONs for different feedback sources
+target-bucket: Where Label Studio exports annotations
+test-suites: Contains organized test suites for evaluation
 :::
