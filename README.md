@@ -70,7 +70,6 @@ As discussed in the notebook, this direct user feedback approach has limitations
 - Users may misclassify images if they're uncertain about food categories
 - UI design elements (like the order of options in the correction dropdown) can introduce selection biases
 - Without expert validation, feedback quality can be inconsistent
-- The system lacks a structured way to prioritize which corrections should influence model retraining
 
 These limitations are addressed in the improved Data Annotator approach implemented in the `feedback_loop_integration` branch.
 
